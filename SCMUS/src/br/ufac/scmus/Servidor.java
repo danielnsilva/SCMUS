@@ -13,7 +13,6 @@ public class Servidor {
 
 	private ArrayList<PrintWriter> listaClientes;
 	private Socket socketCliente;
-	private String usuario;
 	
 	public static void main(String[] args) {
 		new Servidor().run();
@@ -26,13 +25,7 @@ public class Servidor {
 		
 		try {
 			
-			ServerSocket socketServidor = new ServerSocket(6789) {
-				@Override
-				public void close() throws IOException {
-					enviarMensagens(usuario + " saiu no chat.", "");
-					super.close();
-				}
-			};
+			ServerSocket socketServidor = new ServerSocket(6789);
 			
 			System.out.println("Servidor iniciado");
 			
@@ -46,7 +39,7 @@ public class Servidor {
 				
 				InputStreamReader isrUsuario = new InputStreamReader(socketCliente.getInputStream());
 				BufferedReader readerUsuario = new BufferedReader(isrUsuario);
-				usuario = readerUsuario.readLine();
+				final String usuario = readerUsuario.readLine();
 				
 				Thread t = new Thread(new Runnable() {
 					@Override
