@@ -3,6 +3,7 @@ package br.ufac.scmus;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -18,11 +19,14 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.JLabel;
+import javax.swing.border.TitledBorder;
 
 public class Cliente {
 
-	private JTextArea input;
-	private JTextField output;
+	private JTextArea txtMensagens;
+	private JTextField txtMensagemUsuario;
+	private InputStreamReader isr;
 	private BufferedReader reader;
 	private PrintWriter writer;
 	private Socket socket;
@@ -34,46 +38,36 @@ public class Cliente {
 	}
 	
 	public void run() {
-		JFrame frame = new JFrame("Sistema de Chat Moderno Utilizando Sockets");
-		JPanel panel = new JPanel();
 		
-		input = new JTextArea(20, 40);
-		input.setLineWrap(true);
-		input.setWrapStyleWord(true);
-		input.setEditable(false);
-		
-		JScrollPane scroll = new JScrollPane(input, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-		
-		output = new JTextField(20);
-		JButton send = new JButton("Enviar");
-		send.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (output.getText().equals("")) {
-					return;
-				}
-				
-				writer.println(output.getText());
-				writer.flush();
-				
-				output.setText("");
-				output.requestFocus();
-			}
-		});
-		
-		panel.add(scroll);
-		panel.add(output);
-		panel.add(send);
-		
-		frame.getContentPane().add(BorderLayout.CENTER, panel);
-		
+		JFrame frameChat = new JFrame("Sistema de Chat Moderno Utilizando Sockets");
+		JPanel panelMensagens = new JPanel();
+		panelMensagens.setBorder(new TitledBorder(null, "Mensagens", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		JPanel panelConexao = new JPanel();
-		frame.getContentPane().add(panelConexao, BorderLayout.NORTH);
+		panelConexao.setBorder(new TitledBorder(null, "Conex√£o", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		
+		txtMensagens = new JTextArea(20, 50);
+		txtMensagens.setLineWrap(true);
+		txtMensagens.setWrapStyleWord(true);
+		txtMensagens.setEditable(false);
+		
+		JScrollPane scrollMensagens = new JScrollPane(txtMensagens, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		
+		panelMensagens.add(scrollMensagens);
+		
+		frameChat.getContentPane().add(BorderLayout.CENTER, panelMensagens);
+		
+		
+		frameChat.getContentPane().add(panelConexao, BorderLayout.NORTH);
+		
+		JLabel lblUsurio = new JLabel("Usu√°rio:");
+		panelConexao.add(lblUsurio);
 		
 		tfUsuario = new JTextField();
 		panelConexao.add(tfUsuario);
 		tfUsuario.setColumns(10);
+		
+		JLabel lblHost = new JLabel("Host:");
+		panelConexao.add(lblHost);
 		
 		tfHost = new JTextField();
 		panelConexao.add(tfHost);
@@ -86,58 +80,74 @@ public class Cliente {
 			}
 		});
 		panelConexao.add(btnConectar);
-		frame.pack();
-		frame.setVisible(true);
-		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		frame.setLocationRelativeTo(null);
 		
-		frame.addWindowListener(new WindowListener() {
-			
+		JPanel panelEnviar = new JPanel();
+		panelEnviar.setBorder(new TitledBorder(null, "Enviar mensagem", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		frameChat.getContentPane().add(panelEnviar, BorderLayout.SOUTH);
+		
+		txtMensagemUsuario = new JTextField(20);
+		panelEnviar.add(txtMensagemUsuario);
+		JButton btnEnviar = new JButton("Enviar");
+		panelEnviar.add(btnEnviar);
+		btnEnviar.addActionListener(new ActionListener() {
 			@Override
-			public void windowOpened(java.awt.event.WindowEvent e) {
-				// TODO Auto-generated method stub
-				
+			public void actionPerformed(ActionEvent e) {
+				enviarMensagem();
 			}
-			
-			@Override
-			public void windowIconified(java.awt.event.WindowEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void windowDeiconified(java.awt.event.WindowEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void windowDeactivated(java.awt.event.WindowEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
+		});
+		
+		frameChat.pack();
+		frameChat.setVisible(true);
+		frameChat.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		frameChat.setLocationRelativeTo(null);
+		
+		frameChat.addWindowListener(new WindowListener() {
 			
 			@Override
 			public void windowClosing(java.awt.event.WindowEvent e) {
-				if ( JOptionPane.showConfirmDialog(null, "Deseja deixar o chat?", "Sair", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.OK_OPTION ) {
+				if ( JOptionPane.showConfirmDialog(null, "Deseja sair do chat?", "Sair", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.OK_OPTION ) {
 					try {
 						socket.close();
-					} catch (IOException e1) {
-						e1.printStackTrace();
+					} catch (IOException ex) {
+						ex.printStackTrace();
 					} finally {
 						System.exit(0);
 					}
 				}
 			}
-			
+
 			@Override
-			public void windowClosed(java.awt.event.WindowEvent e) {
+			public void windowActivated(WindowEvent arg0) {
 				// TODO Auto-generated method stub
 				
 			}
-			
+
 			@Override
-			public void windowActivated(java.awt.event.WindowEvent e) {
+			public void windowClosed(WindowEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void windowDeactivated(WindowEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void windowDeiconified(WindowEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void windowIconified(WindowEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void windowOpened(WindowEvent arg0) {
 				// TODO Auto-generated method stub
 				
 			}
@@ -145,43 +155,62 @@ public class Cliente {
 		
 	}
 
+	protected void enviarMensagem() {
+
+		if (txtMensagemUsuario.getText().equals("")) {
+			return;
+		}
+		
+		writer.println(txtMensagemUsuario.getText());
+		writer.flush();
+		
+		txtMensagemUsuario.setText("");
+		txtMensagemUsuario.requestFocus();
+		
+	}
+
 	protected void conectar(String host) {
 
 		try {
-			socket = new Socket(host, 6666);
-			InputStreamReader isr = new InputStreamReader(socket.getInputStream());
+			
+			socket = new Socket(host, 6789);
+			isr = new InputStreamReader(socket.getInputStream());
 			reader = new BufferedReader(isr);
 			writer = new PrintWriter(socket.getOutputStream());
 			
 			writer.println(tfUsuario.getText());
 			writer.flush();
 			
-			input.append("Servidor encontrado, conex„o estabilizada!" + "\n");
-			//System.out.println("Servidor encontrado, conex„o estabilizada!");
+			txtMensagens.append("Servidor encontrado, conex√£o estabilizada!" + "\n");
+			
 		} catch (Exception e) {
-			JOptionPane.showMessageDialog(null, "Nenhum servidor ativo foi encontrado", "Erro de conex„o", JOptionPane.ERROR_MESSAGE);
+			
+			JOptionPane.showMessageDialog(null, "O host n√£o foi encontrado.", "Erro de conex√£o", JOptionPane.ERROR_MESSAGE);
 			e.printStackTrace();
 			System.exit(0);
+			
 		}
 		
-		Thread atualizador = new Thread(new Runnable() {
+		Thread atualizadorMensagens = new Thread(new Runnable() {
 			
 			@Override
 			public void run() {
-				String message;
+				
+				String mensagem;
 				
 				try {
-					while ((message = reader.readLine()) != null) {
-						input.append(message + "\n");
+					while ((mensagem = reader.readLine()) != null) {
+						txtMensagens.append(mensagem + "\n");
 					}
-				} catch (IOException e1) {
-					//e1.printStackTrace();
+				} catch (IOException e) {
 					System.exit(0);
 				}
+				
 			}
+			
 		});
 		
-		atualizador.start();
+		atualizadorMensagens.start();
 		
 	}
 	

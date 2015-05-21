@@ -1,90 +1,97 @@
 package br.ufac.scmus;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
 public class Servidor {
 
-	private ArrayList<PrintWriter> clientWriters;
-	//private Map<String, PrintWriter> clientes;
-	private Socket clientSocket;
+	private ArrayList<PrintWriter> listaClientes;
+	private Socket socketCliente;
+	private String usuario;
 	
 	public static void main(String[] args) {
 		new Servidor().run();
 	}
 	
 	public void run() {
-		clientWriters = new ArrayList<PrintWriter>();
-		//clientes = new HashMap<String, PrintWriter>();
+		
+		listaClientes = new ArrayList<PrintWriter>();
+		
 		
 		try {
-			@SuppressWarnings("resource")
-			ServerSocket serverSocket = new ServerSocket(6666);
+			
+			ServerSocket socketServidor = new ServerSocket(6789) {
+				@Override
+				public void close() throws IOException {
+					enviarMensagens(usuario + " saiu no chat.", "");
+					super.close();
+				}
+			};
+			
 			System.out.println("Servidor iniciado");
 			
 			while (true) {
-				Socket socket = serverSocket.accept();
+				
+				Socket socket = socketServidor.accept();
 				PrintWriter writer = new PrintWriter(socket.getOutputStream());
-				clientWriters.add(writer);
+				listaClientes.add(writer);
 				
-				clientSocket = socket;
-				InputStreamReader isrUsuario = new InputStreamReader(clientSocket.getInputStream());
+				socketCliente = socket;
+				
+				InputStreamReader isrUsuario = new InputStreamReader(socketCliente.getInputStream());
 				BufferedReader readerUsuario = new BufferedReader(isrUsuario);
-				
-				final String usuario = readerUsuario.readLine();
+				usuario = readerUsuario.readLine();
 				
 				Thread t = new Thread(new Runnable() {
 					@Override
 					public void run() {
 						try {
-							InputStreamReader isr = new InputStreamReader(clientSocket.getInputStream());
+							InputStreamReader isr = new InputStreamReader(socketCliente.getInputStream());
 							BufferedReader reader = new BufferedReader(isr);
 							
-							String message;
+							String mensagem;
 							
-							while ((message = reader.readLine()) != null) {
-								System.out.println("O usuário diz: " + message);
-								shoot(message, usuario);
+							while ((mensagem = reader.readLine()) != null) {
+								enviarMensagens(mensagem, usuario);
 							}
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
-						
 					}
 				});
 				
 				t.start();
-				shoot(usuario + " entrou no chat.", "");
+				
+				enviarMensagens(usuario + " entrou no chat.", "");
+				
 			}
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
 	}
-	
-	public void shoot(String message, String usuario) {
-		Iterator<PrintWriter> it = clientWriters.iterator();
+
+	public void enviarMensagens(String mensagem, String usuario) {
 		
-		while( it.hasNext() ) {
+		Iterator<PrintWriter> it = listaClientes.iterator();
+		
+		while (it.hasNext()) {
 			try {
 				PrintWriter writer = (PrintWriter) it.next();
-				if (usuario.equals("")) {
-					writer.println(message);
-				} else {
-					writer.println(usuario + " diz:\n" + message);
-				}
+				writer.println(usuario.equals("") ? mensagem + "\n" : usuario + " diz: " + mensagem + "\n");
 				writer.flush();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
+		
 	}
 	
 	
