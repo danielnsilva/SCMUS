@@ -107,6 +107,8 @@ public class Cliente {
 			public void windowClosing(java.awt.event.WindowEvent e) {
 				if ( JOptionPane.showConfirmDialog(null, "Deseja sair do chat?", "Sair", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.OK_OPTION ) {
 					try {
+						writer.println("[sair]");
+						writer.flush();
 						socket.close();
 					} catch (IOException ex) {
 						ex.printStackTrace();
