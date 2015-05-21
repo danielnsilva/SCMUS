@@ -43,7 +43,7 @@ public class Cliente {
 		JPanel panelMensagens = new JPanel();
 		panelMensagens.setBorder(new TitledBorder(null, "Mensagens", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		JPanel panelConexao = new JPanel();
-		panelConexao.setBorder(new TitledBorder(null, "Conex√£o", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		panelConexao.setBorder(new TitledBorder(null, "Conex„o", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		
 		txtMensagens = new JTextArea(20, 50);
 		txtMensagens.setLineWrap(true);
@@ -59,7 +59,7 @@ public class Cliente {
 		
 		frameChat.getContentPane().add(panelConexao, BorderLayout.NORTH);
 		
-		JLabel lblUsurio = new JLabel("Usu√°rio:");
+		JLabel lblUsurio = new JLabel("Usu·rio:");
 		panelConexao.add(lblUsurio);
 		
 		tfUsuario = new JTextField();
@@ -183,11 +183,11 @@ public class Cliente {
 			writer.println(tfUsuario.getText());
 			writer.flush();
 			
-			txtMensagens.append("Servidor encontrado, conex√£o estabilizada!" + "\n");
+			txtMensagens.append("Servidor encontrado, conex„o estabilizada!" + "\n");
 			
 		} catch (Exception e) {
 			
-			JOptionPane.showMessageDialog(null, "O host n√£o foi encontrado.", "Erro de conex√£o", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(null, "O host n„o foi encontrado.", "Erro de conex„o", JOptionPane.ERROR_MESSAGE);
 			e.printStackTrace();
 			System.exit(0);
 			

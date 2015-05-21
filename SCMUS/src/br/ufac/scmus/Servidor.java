@@ -87,7 +87,6 @@ public class Servidor {
 		while (it.hasNext()) {
 			try {
 				PrintWriter writer = (PrintWriter) it.next();
-				//writer.println(usuario.equals("") ? mensagem + "\n" : usuario + " diz: " + mensagem + "\n");
 				if (usuario.equals("")) {
 					saida = mensagem + "\n";
 				} else if (mensagem.equals("[sair]")) {
