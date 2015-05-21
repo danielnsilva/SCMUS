@@ -19,16 +19,18 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
 
-public class ChatClient {
+public class Cliente {
 
 	private JTextArea input;
 	private JTextField output;
 	private BufferedReader reader;
 	private PrintWriter writer;
 	private Socket socket;
+	private JTextField tfHost;
+	private JTextField tfUsuario;
 	
 	public static void main(String[] args) {
-		new ChatClient().run();
+		new Cliente().run();
 	}
 	
 	public void run() {
@@ -64,40 +66,26 @@ public class ChatClient {
 		panel.add(output);
 		panel.add(send);
 		
-		try {
-			socket = new Socket("192.168.1.5", 6666);
-			InputStreamReader isr = new InputStreamReader(socket.getInputStream());
-			reader = new BufferedReader(isr);
-			writer = new PrintWriter(socket.getOutputStream());
-			
-			System.out.println("Servidor encontrado, conexão estabilizada!");
-		} catch (Exception e) {
-			JOptionPane.showMessageDialog(null, "Nenhum servidor ativo foi encontrado", "Erro de conexão", JOptionPane.ERROR_MESSAGE);
-			e.printStackTrace();
-			System.exit(0);
-		}
+		frame.getContentPane().add(BorderLayout.CENTER, panel);
 		
-		Thread atualizador = new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				String message;
-				
-				try {
-					while ((message = reader.readLine()) != null) {
-						System.out.println("O usuário diz: " + message);
-						input.append(message + "\n");
-					}
-				} catch (IOException e1) {
-					e1.printStackTrace();
-					System.exit(0);
-				}
+		JPanel panelConexao = new JPanel();
+		frame.getContentPane().add(panelConexao, BorderLayout.NORTH);
+		
+		tfUsuario = new JTextField();
+		panelConexao.add(tfUsuario);
+		tfUsuario.setColumns(10);
+		
+		tfHost = new JTextField();
+		panelConexao.add(tfHost);
+		tfHost.setColumns(10);
+		
+		JButton btnConectar = new JButton("Conectar");
+		btnConectar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				conectar(tfHost.getText());
 			}
 		});
-		
-		atualizador.start();
-		
-		frame.getContentPane().add(BorderLayout.CENTER, panel);
+		panelConexao.add(btnConectar);
 		frame.pack();
 		frame.setVisible(true);
 		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -154,6 +142,46 @@ public class ChatClient {
 				
 			}
 		});
+		
+	}
+
+	protected void conectar(String host) {
+
+		try {
+			socket = new Socket(host, 6666);
+			InputStreamReader isr = new InputStreamReader(socket.getInputStream());
+			reader = new BufferedReader(isr);
+			writer = new PrintWriter(socket.getOutputStream());
+			
+			writer.println(tfUsuario.getText());
+			writer.flush();
+			
+			input.append("Servidor encontrado, conexão estabilizada!" + "\n");
+			//System.out.println("Servidor encontrado, conexão estabilizada!");
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(null, "Nenhum servidor ativo foi encontrado", "Erro de conexão", JOptionPane.ERROR_MESSAGE);
+			e.printStackTrace();
+			System.exit(0);
+		}
+		
+		Thread atualizador = new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				String message;
+				
+				try {
+					while ((message = reader.readLine()) != null) {
+						input.append(message + "\n");
+					}
+				} catch (IOException e1) {
+					//e1.printStackTrace();
+					System.exit(0);
+				}
+			}
+		});
+		
+		atualizador.start();
 		
 	}
 	

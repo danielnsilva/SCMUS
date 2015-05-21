@@ -6,19 +6,23 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
-public class ChatServer {
+public class Servidor {
 
 	private ArrayList<PrintWriter> clientWriters;
+	//private Map<String, PrintWriter> clientes;
 	private Socket clientSocket;
 	
 	public static void main(String[] args) {
-		new ChatServer().run();
+		new Servidor().run();
 	}
 	
 	public void run() {
 		clientWriters = new ArrayList<PrintWriter>();
+		//clientes = new HashMap<String, PrintWriter>();
 		
 		try {
 			@SuppressWarnings("resource")
@@ -31,6 +35,11 @@ public class ChatServer {
 				clientWriters.add(writer);
 				
 				clientSocket = socket;
+				InputStreamReader isrUsuario = new InputStreamReader(clientSocket.getInputStream());
+				BufferedReader readerUsuario = new BufferedReader(isrUsuario);
+				
+				final String usuario = readerUsuario.readLine();
+				
 				Thread t = new Thread(new Runnable() {
 					@Override
 					public void run() {
@@ -42,7 +51,7 @@ public class ChatServer {
 							
 							while ((message = reader.readLine()) != null) {
 								System.out.println("O usuário diz: " + message);
-								shoot(message);
+								shoot(message, usuario);
 							}
 						} catch (Exception e) {
 							e.printStackTrace();
@@ -52,7 +61,7 @@ public class ChatServer {
 				});
 				
 				t.start();
-				System.out.println("Um novo cliente se conectou");
+				shoot(usuario + " entrou no chat.", "");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -60,18 +69,24 @@ public class ChatServer {
 		
 	}
 	
-	public void shoot(String message) {
+	public void shoot(String message, String usuario) {
 		Iterator<PrintWriter> it = clientWriters.iterator();
 		
 		while( it.hasNext() ) {
 			try {
 				PrintWriter writer = (PrintWriter) it.next();
-				writer.println("O usuário diz:\n" + message);
+				if (usuario.equals("")) {
+					writer.println(message);
+				} else {
+					writer.println(usuario + " diz:\n" + message);
+				}
 				writer.flush();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
 	}
+	
+	
 	
 }
